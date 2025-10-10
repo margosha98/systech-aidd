@@ -1,3 +1,6 @@
+---
+alwaysApply: true
+---
 # Conventions для разработки
 
 > **Базовый документ:** [vision.md](vision.md) - полное техническое видение проекта

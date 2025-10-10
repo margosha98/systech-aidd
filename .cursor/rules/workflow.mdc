@@ -1,3 +1,6 @@
+---
+alwaysApply: true
+---
 # Workflow разработки
 
 > **Базовые документы:** [vision.md](vision.md), [conventions.md](conventions.md), [tasklist.md](tasklist.md)
