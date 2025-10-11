@@ -27,6 +27,7 @@ async def main() -> None:
 
         # Инициализация Database
         database = Database(config.database_path)
+        await database.connect()
         await database.init_db()
 
         # Создание LLM клиента
