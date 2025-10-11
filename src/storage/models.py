@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Literal
 
 
 @dataclass
@@ -19,7 +20,7 @@ class Message:
 
     user_id: int
     chat_id: int
-    role: str  # 'user' | 'assistant'
+    role: Literal["user", "assistant"]
     content: str
     id: int | None = None
     created_at: datetime | None = None
