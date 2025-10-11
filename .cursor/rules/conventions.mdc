@@ -1,5 +1,5 @@
 ---
-alwaysApply: true
+alwaysApply: false
 ---
 # Conventions для разработки
 
@@ -9,16 +9,20 @@ alwaysApply: true
 
 ### Обязательные правила
 1. **KISS** - максимальная простота, без оверинжиниринга
-2. **1 класс = 1 файл** - никаких монолитных файлов
-3. **Async-first** - все IO операции только через async/await
-4. **Type hints** - типизация обязательна для всех функций/методов
-5. **Fail fast** - валидация в начале, ранний raise при ошибках
+2. **SOLID** - следование принципам (особенно SRP, DIP, OCP)
+3. **DRY** - не дублировать код, переиспользовать логику
+4. **1 класс = 1 файл** - никаких монолитных файлов
+5. **Async-first** - все IO операции только через async/await
+6. **Type hints** - типизация обязательна для всех функций/методов
+7. **Fail fast** - валидация в начале, ранний raise при ошибках
 
 ### Запрещено
+- ❌ Глобальные переменные (кроме констант)
 - ❌ Абстрактные фабрики и сложные паттерны
 - ❌ Преждевременная оптимизация
 - ❌ Магические методы без явной необходимости
 - ❌ Избыточная модульность
+- ❌ Hardcoded значения (использовать Config)
 
 ## Архитектура
 
@@ -28,11 +32,59 @@ Bot Layer → LLM Layer → Storage Layer
 ```
 - Каждый слой знает только о следующем
 - Никаких обратных зависимостей
+- Зависимости через абстракции (Protocol), а не конкретные реализации
+
+### Dependency Injection (DI)
+**Обязательно:**
+- Зависимости передаются через конструктор
+- Нет глобальных переменных для зависимостей
+- Используем Protocol для абстракций
+
+**Пример правильного DI:**
+```python
+class BotHandlers:
+    def __init__(
+        self, 
+        llm_client: LLMClientProtocol,
+        database: DatabaseProtocol,
+        config: Config
+    ):
+        self.llm_client = llm_client
+        self.database = database
+        self.config = config
+```
+
+**❌ Неправильно (глобальные переменные):**
+```python
+llm_client: LLMClient | None = None
+database: Database | None = None
+
+def setup_handlers(client, db):
+    global llm_client, database
+    llm_client = client
+    database = db
+```
+
+### Абстракции через Protocol
+**Когда использовать:**
+- Для зависимостей между слоями
+- Когда нужна гибкость для тестирования
+- Для определения интерфейсов без наследования
+
+**Пример:**
+```python
+from typing import Protocol
+
+class DatabaseProtocol(Protocol):
+    async def save_message(self, message: Message) -> None: ...
+    async def get_history(self, chat_id: int, user_id: int, limit: int) -> list[Message]: ...
+```
 
 ### Структура
 - Плоская структура папок
 - Минимум вложенности
 - Разделение: bot/, llm/, storage/
+- Protocol в отдельных файлах: protocols.py
 
 ## Код
 
@@ -42,15 +94,38 @@ Bot Layer → LLM Layer → Storage Layer
 - Константы: `UPPER_SNAKE_CASE`
 - Приватные: `_prefix`
 
-### Функции
+### Функции и методы
 ```python
 async def get_response(messages: list[Message], system_prompt: str) -> str:
-    """Получает ответ от LLM с учетом истории."""
+    """Получает ответ от LLM с учетом истории.
+    
+    Args:
+        messages: История сообщений диалога
+        system_prompt: Системный промпт для LLM
+        
+    Returns:
+        Ответ от LLM
+        
+    Raises:
+        OpenAIError: При ошибке API
+    """
     pass
 ```
-- Docstring для неочевидных функций
+- Docstring для неочевидных функций (формат Google/NumPy)
 - Явные типы возвращаемых значений
+- Type hints для всех параметров
 - Async по умолчанию для IO
+- Использовать `Literal` для строковых констант вместо `str`
+
+**Пример с Literal:**
+```python
+from typing import Literal
+
+@dataclass
+class Message:
+    role: Literal["user", "assistant"]  # ✅ Правильно
+    # role: str  # ❌ Неправильно
+```
 
 ### Обработка ошибок
 ```python
@@ -64,6 +139,46 @@ try:
 except OpenAIError as e:
     logger.error(f"LLM API error: {e}")
     raise
+```
+
+### Управление ресурсами
+**Connection Pool и Context Managers:**
+- Переиспользовать соединения вместо создания на каждый запрос
+- Использовать context managers для автоматического освобождения ресурсов
+- Реализовывать `__aenter__` и `__aexit__` для async context managers
+
+**Пример правильного подхода:**
+```python
+class Database:
+    def __init__(self, db_path: str):
+        self.db_path = db_path
+        self._connection: aiosqlite.Connection | None = None
+    
+    async def __aenter__(self):
+        await self.connect()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+    
+    async def connect(self) -> None:
+        self._connection = await aiosqlite.connect(self.db_path)
+    
+    async def close(self) -> None:
+        if self._connection:
+            await self._connection.close()
+    
+    async def save_message(self, message: Message) -> None:
+        if not self._connection:
+            raise RuntimeError("Database not connected")
+        # Используем self._connection
+```
+
+**Использование:**
+```python
+async with Database(db_path) as db:
+    await db.save_message(msg)
+# Соединение автоматически закрывается
 ```
 
 ### Конфигурация
@@ -85,23 +200,243 @@ logger.info(f"Received message: user_id={user_id}, length={len(text)}")
 logger.error(f"LLM API error: status={status}, error={error}")
 ```
 
+## Инструменты качества кода
+
+### Ruff (линтер + форматтер)
+**Назначение:** Проверка стиля кода и автоформатирование
+
+**Использование:**
+```bash
+make format    # Автоформатирование
+make lint      # Проверка линтера
+```
+
+**Конфигурация в pyproject.toml:**
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "C4", "DTZ", "PIE", "RET", "SIM", "ARG"]
+```
+
+**Требование:** 0 ошибок перед коммитом
+
+### Mypy (type checker)
+**Назначение:** Статическая проверка типов
+
+**Использование:**
+```bash
+make typecheck
+```
+
+**Конфигурация в pyproject.toml:**
+```toml
+[tool.mypy]
+strict = true
+python_version = "3.11"
+```
+
+**Требование:** 0 ошибок типизации перед коммитом
+
+### Комплексная проверка
+```bash
+make quality   # Запускает format + lint + typecheck + test
+```
+
+**Требование:** Все проверки ✅ перед коммитом
+
 ## Тестирование
 
 ### Что тестировать
 - Критичную бизнес-логику (LLM промпты, обработка истории)
 - Обработку ошибок
 - Валидацию конфигурации
+- CRUD операции (Database методы)
+- Формирование запросов к внешним API
 
 ### Что НЕ тестировать
 - Тривиальные геттеры/сеттеры
 - Внешние библиотеки (aiogram, openai)
+- UI/UX элементы Telegram
 
-### Формат
+### Структура тестов
+```
+tests/
+├── __init__.py
+├── conftest.py         # Fixtures
+├── test_database.py    # Тесты Storage Layer
+├── test_llm_client.py  # Тесты LLM Layer
+└── test_handlers.py    # Тесты Bot Layer (опционально)
+```
+
+### Формат тестов
 ```python
+import pytest
+from unittest.mock import AsyncMock
+
 @pytest.mark.asyncio
-async def test_get_response_with_history():
-    """Проверяет формирование промпта с историей."""
-    # Arrange, Act, Assert
+async def test_get_response_with_history(mock_llm_client, test_messages):
+    """Проверяет формирование промпта с историей.
+    
+    Arrange - подготовка данных
+    Act - выполнение действия
+    Assert - проверка результата
+    """
+    # Arrange
+    system_prompt = "Test prompt"
+    
+    # Act
+    response = await mock_llm_client.get_response(test_messages, system_prompt)
+    
+    # Assert
+    assert response == "Expected response"
+    mock_llm_client.client.chat.completions.create.assert_called_once()
+```
+
+### Fixtures (conftest.py)
+```python
+import pytest
+from src.storage.database import Database
+from src.config import Config
+
+@pytest.fixture
+async def test_database():
+    """Fixture для in-memory SQLite базы."""
+    db = Database(":memory:")
+    async with db:
+        await db.init_db()
+        yield db
+
+@pytest.fixture
+def mock_config():
+    """Fixture для тестовой конфигурации."""
+    return Config(
+        telegram_bot_token="test_token",
+        openrouter_api_key="test_key",
+        openrouter_model="test-model"
+    )
+```
+
+### Моки для внешних зависимостей
+**Использовать pytest-mock или unittest.mock:**
+```python
+from unittest.mock import AsyncMock, MagicMock
+
+async def test_llm_error_handling(mocker):
+    """Проверяет обработку ошибок LLM API."""
+    # Мокаем AsyncOpenAI
+    mock_client = mocker.patch('src.llm.client.AsyncOpenAI')
+    mock_client.return_value.chat.completions.create.side_effect = Exception("API Error")
+    
+    # Проверяем что исключение пробрасывается
+    with pytest.raises(Exception, match="API Error"):
+        await llm_client.get_response(messages, prompt)
+```
+
+### Покрытие тестами
+**Минимальные требования:**
+- Критичные модули (Database, LLMClient): >80%
+- Общее покрытие: >60%
+
+**Проверка покрытия:**
+```bash
+pytest --cov=src --cov-report=term-missing
+```
+
+### Запуск тестов
+```bash
+make test                    # Все тесты
+pytest tests/test_database.py  # Конкретный файл
+pytest -v                    # Verbose режим
+pytest -k "test_save"        # Только тесты с "save" в имени
+```
+
+## Лучшие практики Python
+
+### Типизация
+✅ **Правильно:**
+```python
+from typing import Literal, Protocol
+
+def process_message(
+    message: Message,
+    role: Literal["user", "assistant"]
+) -> list[dict[str, str]]:
+    pass
+```
+
+❌ **Неправильно:**
+```python
+def process_message(message, role):  # Нет типов
+    pass
+```
+
+### Использование dataclasses
+✅ **Правильно:**
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Message:
+    user_id: int
+    content: str
+    created_at: datetime | None = None
+```
+
+### Управление исключениями
+✅ **Правильно (fail-fast):**
+```python
+async def save_message(self, message: Message) -> None:
+    if not self._connection:
+        raise RuntimeError("Database not connected")
+    
+    if not message.content:
+        raise ValueError("Message content cannot be empty")
+    
+    # Основная логика
+```
+
+### Context Managers
+✅ **Правильно:**
+```python
+async with Database(db_path) as db:
+    await db.save_message(msg)
+```
+
+❌ **Неправильно:**
+```python
+db = Database(db_path)
+await db.connect()
+try:
+    await db.save_message(msg)
+finally:
+    await db.close()
+```
+
+### Именование
+✅ **Правильно:**
+```python
+MAX_HISTORY_MESSAGES = 10  # Константа
+database_path: str          # Переменная
+DatabaseProtocol            # Протокол/Интерфейс
+get_history()               # Функция
+```
+
+### Импорты
+- Стандартная библиотека первой
+- Внешние библиотеки второй  
+- Локальные импорты третьими
+- Используйте `ruff` для автосортировки
+
+```python
+import logging
+from datetime import datetime
+
+import aiosqlite
+from aiogram import Bot
+
+from src.config import Config
+from src.storage.models import Message
 ```
 
 ## MVP подход

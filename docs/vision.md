@@ -14,22 +14,33 @@
 - **python-dotenv** - управление переменными окружения
 - **pydantic-settings** - типизированная конфигурация приложения
 
-### Тестирование
+### Тестирование и качество кода
 - **pytest** - фреймворк для тестирования
 - **pytest-asyncio** - поддержка асинхронных тестов
+- **pytest-cov** - измерение покрытия тестами
+- **pytest-mock** - удобные моки для тестов
+- **ruff** - быстрый линтер и форматтер (замена black, isort, flake8)
+- **mypy** - статическая проверка типов
 
 ## 2. Принципы разработки
 
 ### Основные принципы
 1. **KISS (Keep It Simple, Stupid)** - максимальная простота решений
-2. **ООП** - 1 класс = 1 файл (чистая структура, легкая навигация)
-3. **Явное лучше неявного** - никакой магии, все очевидно
-4. **Fail fast** - ранняя валидация, быстрое падение при ошибках
-5. **Async-first** - используем async/await для всех IO операций (aiogram, openai, БД)
-6. **Type hints** - типизация для всех функций и методов
-7. **MVP-подход** - реализуем только необходимый минимум
+2. **SOLID** - следование принципам объектно-ориентированного проектирования
+   - SRP (Single Responsibility) - одна ответственность на класс
+   - DIP (Dependency Inversion) - зависимости через абстракции (Protocol)
+   - OCP (Open-Closed) - открыт для расширения, закрыт для изменения
+3. **DRY (Don't Repeat Yourself)** - нет дублирования кода
+4. **ООП** - 1 класс = 1 файл (чистая структура, легкая навигация)
+5. **Явное лучше неявного** - никакой магии, все очевидно
+6. **Fail fast** - ранняя валидация, быстрое падение при ошибках
+7. **Async-first** - используем async/await для всех IO операций (aiogram, openai, БД)
+8. **Type hints** - типизация для всех функций и методов
+9. **Dependency Injection** - зависимости через конструктор, без глобального state
+10. **MVP-подход** - реализуем только необходимый минимум
 
 ### Что избегаем (NO оверинжиниринг)
+- ❌ Глобальные переменные (кроме констант)
 - ❌ Абстрактные фабрики и сложные паттерны
 - ❌ Микросервисы и избыточная модульность
 - ❌ Сложные системы кеширования
@@ -41,27 +52,38 @@
 systech-aidd/
 ├── src/
 │   ├── bot/
-│   │   ├── handlers.py      # Обработчики команд и сообщений
+│   │   ├── handlers.py      # Обработчики команд и сообщений (класс BotHandlers с DI)
 │   │   └── bot.py            # Инициализация и запуск бота
 │   ├── llm/
-│   │   └── client.py         # Работа с OpenAI/Openrouter
+│   │   ├── client.py         # Работа с OpenAI/Openrouter
+│   │   └── protocols.py      # LLMClientProtocol
 │   ├── storage/
-│   │   ├── database.py       # Работа с SQLite
-│   │   └── models.py         # Модели данных (dataclasses)
+│   │   ├── database.py       # Работа с SQLite (connection pool, context manager)
+│   │   ├── models.py         # Модели данных (dataclasses с Literal)
+│   │   └── protocols.py      # DatabaseProtocol
 │   ├── config.py             # Конфигурация (pydantic-settings)
-│   └── main.py               # Точка входа
+│   └── main.py               # Точка входа (DI setup)
 ├── tests/
-│   ├── test_bot.py
-│   ├── test_llm.py
-│   └── test_storage.py
+│   ├── __init__.py
+│   ├── conftest.py           # Fixtures
+│   ├── test_database.py      # Тесты Storage Layer
+│   ├── test_llm_client.py    # Тесты LLM Layer
+│   └── test_handlers.py      # Тесты Bot Layer (опционально)
 ├── docs/
 │   ├── idea.md
-│   └── vision.md
+│   ├── vision.md
+│   ├── tasklist.md
+│   └── tasklist_tech_dept.md
+├── .cursor/
+│   └── rules/
+│       ├── conventions.mdc
+│       ├── workflow.mdc
+│       └── workflow_tech_debt.mdc
 ├── .env.example              # Пример конфигурации
 ├── .env                      # Реальная конфигурация (в .gitignore)
 ├── .gitignore
-├── Makefile
-├── pyproject.toml            # uv зависимости
+├── Makefile                  # Команды: run, install, lint, format, typecheck, test, quality
+├── pyproject.toml            # uv зависимости + конфигурации ruff, mypy, pytest
 └── README.md
 ```
 
@@ -69,7 +91,9 @@ systech-aidd/
 - Плоская структура, минимум вложенности
 - Один класс = один файл
 - Разделение по функциональности: bot, llm, storage
+- Protocol для абстракций в отдельных файлах
 - Конфигурация в корне src/
+- Инструменты качества: ruff, mypy, pytest
 
 ## 4. Архитектура проекта
 
@@ -90,18 +114,24 @@ Storage Layer (database.py, models.py)
 **Bot Layer** - точка входа
 - Получает сообщения от пользователя через aiogram
 - Парсит команды (/start, /reset и т.д.)
-- Передает запросы в LLM Layer
+- Передает запросы в LLM Layer через `LLMClientProtocol`
+- Использует Storage Layer через `DatabaseProtocol`
 - Возвращает ответы пользователю
+- **DI:** Зависимости (LLMClient, Database, Config) через конструктор `BotHandlers`
 
 **LLM Layer** - бизнес-логика
 - Формирует промпты (системный промпт + история диалога)
 - Отправляет запросы в Openrouter через openai client
 - Возвращает ответы от LLM
+- **Абстракция:** `LLMClientProtocol` для гибкости
 
 **Storage Layer** - персистентность данных
 - Сохраняет историю диалогов в SQLite
 - Читает контекст для пользователя
 - Управляет БД (создание таблиц)
+- **Connection Pool:** Единое соединение, переиспользуется
+- **Context Manager:** `async with Database(path) as db:`
+- **Абстракция:** `DatabaseProtocol` для тестирования
 
 ### Поток данных (основной сценарий)
 
@@ -113,7 +143,10 @@ Storage Layer (database.py, models.py)
 6. Запрос и ответ сохраняются в Storage Layer
 7. Bot отправляет ответ пользователю
 
-**Принцип зависимостей:** Bot → LLM → Storage (зависимости идут вниз, каждый слой знает только о следующем)
+**Принцип зависимостей:** 
+- Bot → LLM → Storage (зависимости идут вниз, каждый слой знает только о следующем)
+- Зависимости через абстракции (Protocol), а не конкретные реализации (DIP)
+- Dependency Injection через конструктор, без глобального state
 
 ## 5. Модель данных
 
@@ -134,11 +167,15 @@ Storage Layer (database.py, models.py)
 ### Dataclass модель (models.py)
 
 ```python
+from dataclasses import dataclass
+from datetime import datetime
+from typing import Literal
+
 @dataclass
 class Message:
     user_id: int
     chat_id: int
-    role: str  # 'user' | 'assistant'
+    role: Literal["user", "assistant"]  # Типобезопасность вместо str
     content: str
     id: int | None = None
     created_at: datetime | None = None
@@ -323,16 +360,92 @@ class Config(BaseSettings):
 - Уровень логирования из переменной окружения `LOG_LEVEL`
 - Стандартный модуль `logging` Python
 
+## 10. Инструменты качества кода
+
+### Ruff - линтер и форматтер
+**Что проверяет:**
+- Стиль кода (PEP 8)
+- Неиспользуемые импорты/переменные
+- Потенциальные баги
+- Best practices Python
+
+**Команды:**
+```bash
+make format    # Автоформатирование кода
+make lint      # Проверка линтером
+```
+
+**Конфигурация (pyproject.toml):**
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+select = ["E", "F", "I", "N", "W", "UP", "B", "A", "C4", "DTZ", "PIE", "RET", "SIM", "ARG"]
+```
+
+### Mypy - проверка типов
+**Что проверяет:**
+- Соответствие типов
+- Корректность вызовов функций
+- Optional/None проверки
+- Protocol/Generic валидация
+
+**Команды:**
+```bash
+make typecheck    # Статическая проверка типов
+```
+
+**Конфигурация (pyproject.toml):**
+```toml
+[tool.mypy]
+strict = true
+python_version = "3.11"
+```
+
+### Pytest - тестирование
+**Что тестируем:**
+- Database: CRUD операции, история, очистка
+- LLMClient: формирование запросов, обработка ошибок
+- Handlers: обработка команд (опционально)
+
+**Команды:**
+```bash
+make test    # Запуск всех тестов
+pytest --cov=src --cov-report=term-missing    # С покрытием
+```
+
+**Конфигурация (pyproject.toml):**
+```toml
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--cov=src --cov-report=term-missing"
+```
+
+**Минимальные требования:**
+- Покрытие критичных модулей (Database, LLMClient): >80%
+- Все тесты проходят перед коммитом
+
+### Комплексная проверка качества
+```bash
+make quality    # format + lint + typecheck + test
+```
+
+**Требование:** Все проверки ✅ перед каждым коммитом
+
 ---
 
 ## Итого
 
-Документ содержит все необходимое для начала разработки MVP:
+Документ содержит все необходимое для разработки качественного MVP:
 - Простой и понятный технический стек
-- Минималистичная архитектура без оверинжиниринга
+- Минималистичная архитектура без оверинжиниринга с применением SOLID, DRY, DI
 - Четкие сценарии работы
 - Настройка через переменные окружения
 - Базовое логирование
+- Автоматические инструменты контроля качества (ruff, mypy, pytest)
+- Protocol для абстракций и тестируемости
+- Connection pool для эффективной работы с БД
 
 Следующий шаг: начало реализации согласно этому техническому видению.
 
