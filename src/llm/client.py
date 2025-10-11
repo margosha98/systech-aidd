@@ -3,6 +3,7 @@ import logging
 from openai import AsyncOpenAI
 
 from src.config import Config
+from src.storage.models import Message
 
 logger = logging.getLogger(__name__)
 
@@ -27,11 +28,11 @@ class LLMClient:
         
         logger.info(f"LLMClient initialized with model: {self.model}")
     
-    async def get_response(self, user_message: str, system_prompt: str) -> str:
-        """Получает ответ от LLM.
+    async def get_response(self, messages: list[Message], system_prompt: str) -> str:
+        """Получает ответ от LLM с учетом истории.
         
         Args:
-            user_message: Сообщение пользователя
+            messages: История сообщений
             system_prompt: Системный промпт
             
         Returns:
@@ -40,16 +41,23 @@ class LLMClient:
         Raises:
             Exception: При ошибке API
         """
-        logger.info(f"Sending request to LLM: message_length={len(user_message)}")
-        logger.debug(f"User message: {user_message}")
+        logger.info(f"Sending request to LLM: history_length={len(messages)}")
+        logger.debug(f"Messages: {[{'role': m.role, 'content': m.content[:50]} for m in messages]}")
         
         try:
+            # Формируем список сообщений для API
+            api_messages = [{"role": "system", "content": system_prompt}]
+            
+            # Добавляем историю диалога
+            for msg in messages:
+                api_messages.append({
+                    "role": msg.role,
+                    "content": msg.content
+                })
+            
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_message}
-                ],
+                messages=api_messages,
                 temperature=self.temperature,
                 max_tokens=self.max_tokens
             )

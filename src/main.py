@@ -5,6 +5,7 @@ import logging
 from src.config import Config
 from src.bot.bot import create_bot, start_polling
 from src.llm.client import LLMClient
+from src.storage.database import Database
 from src.bot.handlers import setup_handlers
 
 
@@ -24,6 +25,10 @@ async def main() -> None:
         config = Config()
         logger.info("Configuration loaded successfully")
         
+        # Инициализация Database
+        database = Database(config.database_path)
+        await database.init_db()
+        
         # Создание LLM клиента
         llm_client = LLMClient(config)
         
@@ -31,7 +36,7 @@ async def main() -> None:
         bot, dp = create_bot(config)
         
         # Настройка handlers с зависимостями
-        setup_handlers(llm_client, config)
+        setup_handlers(llm_client, database, config)
         
         # Запуск polling
         await start_polling(bot, dp)
