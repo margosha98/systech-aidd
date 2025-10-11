@@ -66,9 +66,7 @@ class Database:
         await self.init_db()
         return self
 
-    async def __aexit__(
-        self, exc_type: Any, exc_val: Any, exc_tb: Any
-    ) -> None:
+    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Выход из async context manager."""
         await self.close()
 
@@ -170,7 +168,7 @@ class Database:
                             else None,
                         )
                     )
-                
+
                 # Разворачиваем список: от старых к новым
                 messages = list(reversed(messages_temp))
 

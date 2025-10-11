@@ -2,21 +2,21 @@
 
 import logging
 
-from aiogram import Bot, Dispatcher
+from aiogram import Bot, Dispatcher, Router
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from src.bot.handlers import router
 from src.config import Config
 
 logger = logging.getLogger(__name__)
 
 
-def create_bot(config: Config) -> tuple[Bot, Dispatcher]:
+def create_bot(config: Config, handlers_router: Router) -> tuple[Bot, Dispatcher]:
     """Создает экземпляры бота и диспетчера.
 
     Args:
         config: Объект конфигурации
+        handlers_router: Router с зарегистрированными handlers
 
     Returns:
         Кортеж (Bot, Dispatcher)
@@ -25,7 +25,7 @@ def create_bot(config: Config) -> tuple[Bot, Dispatcher]:
         token=config.telegram_bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML)
     )
     dp = Dispatcher()
-    dp.include_router(router)
+    dp.include_router(handlers_router)
 
     return bot, dp
 
