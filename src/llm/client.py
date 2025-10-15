@@ -56,12 +56,15 @@ class LLMClient:
 
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=api_messages,
+                messages=api_messages,  # type: ignore[arg-type]
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
 
             answer = response.choices[0].message.content
+            if answer is None:
+                raise ValueError("LLM returned empty response")
+
             logger.info(f"Received response from LLM: length={len(answer)}")
             logger.debug(f"LLM response: {answer}")
 

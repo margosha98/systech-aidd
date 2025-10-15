@@ -22,7 +22,7 @@ async def main() -> None:
 
     try:
         # Загрузка конфигурации
-        config = Config()
+        config = Config()  # type: ignore[call-arg]
         logger.info("Configuration loaded successfully")
 
         # Инициализация Database с context manager (graceful shutdown)

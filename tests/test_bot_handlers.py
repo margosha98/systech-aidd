@@ -67,8 +67,9 @@ async def test_cmd_start(handlers):
     # Проверяем что отправлено приветствие
     msg.answer.assert_called_once()
     call_text = msg.answer.call_args[0][0]
-    assert "Привет" in call_text
-    assert "Systech AIDD" in call_text
+    assert "прив" in call_text.lower()  # "Привееет"
+    assert "ребенок" in call_text.lower() or "7 лет" in call_text
+    assert "/role" in call_text
 
 
 @pytest.mark.asyncio
@@ -179,3 +180,55 @@ async def test_handle_message_error_sends_error_message(handlers, mock_llm_clien
     msg.answer.assert_called()
     error_msg = msg.answer.call_args[0][0]
     assert "ошибка" in error_msg.lower()
+
+
+@pytest.mark.asyncio
+async def test_cmd_reset(handlers, mock_database):
+    """Тест команды /reset."""
+    msg = create_mock_message("/reset", user_id=100, chat_id=100)
+
+    await handlers.cmd_reset(msg)
+
+    # Проверяем что clear_history вызван с правильными параметрами
+    mock_database.clear_history.assert_called_once_with(chat_id=100, user_id=100)
+
+    # Проверяем что отправлено подтверждение
+    msg.answer.assert_called_once()
+    call_text = msg.answer.call_args[0][0]
+    assert "очищена" in call_text.lower() or "сброшена" in call_text.lower()
+
+
+@pytest.mark.asyncio
+async def test_cmd_role_responds(handlers):
+    """Тест что команда /role отправляет ответ."""
+    msg = create_mock_message("/role")
+
+    await handlers.cmd_role(msg)
+
+    # Проверяем что answer был вызван
+    msg.answer.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_cmd_role_shows_capabilities(handlers):
+    """Тест что /role показывает информацию о ребенке."""
+    msg = create_mock_message("/role")
+
+    await handlers.cmd_role(msg)
+
+    call_text = msg.answer.call_args[0][0]
+    # Проверяем что есть информация о возрасте и интересах
+    assert "7 лет" in call_text or "ребенок" in call_text.lower()
+    assert "знаю" in call_text.lower()
+
+
+@pytest.mark.asyncio
+async def test_cmd_role_shows_limitations(handlers):
+    """Тест что /role показывает ограничения знаний ребенка."""
+    msg = create_mock_message("/role")
+
+    await handlers.cmd_role(msg)
+
+    call_text = msg.answer.call_args[0][0]
+    # Проверяем что есть информация об ограничениях
+    assert "не знаю" in call_text.lower() or "чего я не" in call_text.lower()

@@ -1,6 +1,5 @@
 """Тесты для Database класса."""
 
-
 import pytest
 
 from src.storage.database import Database

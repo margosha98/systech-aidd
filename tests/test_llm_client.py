@@ -92,12 +92,15 @@ async def test_get_response_api_error(llm_client):
     messages = [Message(user_id=1, chat_id=1, role="user", content="Test")]
     system_prompt = "Test prompt"
 
-    with patch.object(
-        llm_client.client.chat.completions,
-        "create",
-        new_callable=AsyncMock,
-        side_effect=Exception("API Error"),
-    ), pytest.raises(Exception, match="API Error"):
+    with (
+        patch.object(
+            llm_client.client.chat.completions,
+            "create",
+            new_callable=AsyncMock,
+            side_effect=Exception("API Error"),
+        ),
+        pytest.raises(Exception, match="API Error"),
+    ):
         await llm_client.get_response(messages, system_prompt)
 
 

@@ -13,13 +13,12 @@ lint:
 	uv run ruff check src/
 
 typecheck:
-	-@uv run mypy src/ || echo "⚠️  Mypy errors found (will be fixed in iteration 2)"
+	uv run mypy src/
 
 test:
-	-@uv run pytest || echo "⚠️  No tests yet (will be added in iteration 6)"
+	uv run pytest
 
 quality: format lint typecheck test
 	@echo ""
-	@echo "✅ Quality checks completed"
-	@echo "Note: Some errors are expected and will be fixed in upcoming iterations"
+	@echo "✅ All quality checks passed!"
 
