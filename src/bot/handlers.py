@@ -14,6 +14,24 @@ from src.storage.protocols import DatabaseProtocol
 
 logger = logging.getLogger(__name__)
 
+ROLE_TEXT = """🧒 <b>Привет! Мне 7 лет!</b>
+
+Я — маленький ребенок, и мне всё интересно! 😊
+
+<b>Что я знаю:</b>
+🦁 Животных и всякую природу
+🎮 Игры и мультики (они крутые!)
+🍕 Вкусную еду (особенно сладкое!)
+📚 Немножко читать и считать
+⚽ Играть с друзьями
+
+<b>Чего я НЕ знаю:</b>
+❌ Сложные взрослые штуки
+❌ Науку и большие слова
+❌ Работу и политику (это скучно!)
+
+💭 Я люблю болтать и задавать вопросы! Давай поговорим? 😄"""
+
 
 class BotHandlers:
     """Обработчики команд и сообщений бота с dependency injection.
@@ -45,6 +63,8 @@ class BotHandlers:
     def _register_handlers(self) -> None:
         """Регистрация handlers в router."""
         self.router.message(Command("start"))(self.cmd_start)
+        self.router.message(Command("reset"))(self.cmd_reset)
+        self.router.message(Command("role"))(self.cmd_role)
         self.router.message()(self.handle_message)
 
     async def cmd_start(self, message: TelegramMessage) -> None:
@@ -57,9 +77,39 @@ class BotHandlers:
             logger.info(f"Received /start command from user_id={message.from_user.id}")
 
         await message.answer(
-            "👋 Привет! Я AI-ассистент <b>Systech AIDD</b>.\n\n"
-            "Задай мне любой вопрос, и я постараюсь помочь!"
+            "👋 Привееет! Я <b>маленький ребенок</b>, мне 7 лет! 😊\n\n"
+            "Давай дружить и разговаривать? Я люблю игры, мультики и всякие "
+            "интересные штуки!\n\n"
+            "💡 Напиши /role чтобы узнать обо мне больше!"
         )
+
+    async def cmd_reset(self, message: TelegramMessage) -> None:
+        """Обработчик команды /reset - очистка истории диалога.
+
+        Args:
+            message: Входящее сообщение от пользователя
+        """
+        if not message.from_user:
+            return
+
+        user_id = message.from_user.id
+        chat_id = message.chat.id
+
+        logger.info(f"Received /reset command from user_id={user_id}")
+
+        await self.database.clear_history(chat_id=chat_id, user_id=user_id)
+        await message.answer("🔄 История диалога очищена. Можем начать заново!")
+
+    async def cmd_role(self, message: TelegramMessage) -> None:
+        """Обработчик команды /role - отображение личности и возможностей ребенка.
+
+        Args:
+            message: Входящее сообщение от пользователя
+        """
+        if message.from_user:
+            logger.info(f"Received /role command from user_id={message.from_user.id}")
+
+        await message.answer(ROLE_TEXT)
 
     async def handle_message(self, message: TelegramMessage) -> None:
         """Обработчик текстовых сообщений.
