@@ -26,7 +26,13 @@ async def main() -> None:
         logger.info("Configuration loaded successfully")
 
         # Инициализация Database с context manager (graceful shutdown)
-        async with Database(config.database_path) as database:
+        async with Database(
+            host=config.postgres_host,
+            port=config.postgres_port,
+            database=config.postgres_db,
+            user=config.postgres_user,
+            password=config.postgres_password,
+        ) as database:
             # Создание LLM клиента
             llm_client = LLMClient(config)
 

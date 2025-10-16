@@ -107,7 +107,15 @@ async def test_handle_message_calls_llm(handlers, mock_llm_client, mock_database
     msg = create_mock_message("What is AI?")
 
     # Мокаем историю
-    history = [Message(user_id=123, chat_id=123, role="user", content="What is AI?")]
+    history = [
+        Message(
+            user_id=123,
+            chat_id=123,
+            role="user",
+            content="What is AI?",
+            content_length=11,
+        )
+    ]
     mock_database.get_history.return_value = history
 
     await handlers.handle_message(msg)

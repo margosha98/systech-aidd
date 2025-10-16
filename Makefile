@@ -22,3 +22,5 @@ quality: format lint typecheck test
 	@echo ""
 	@echo "✅ All quality checks passed!"
 
+stop:
+    powershell -Command "Get-Process python* -ErrorAction SilentlyContinue | Stop-Process -Force"

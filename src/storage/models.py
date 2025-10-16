@@ -14,13 +14,17 @@ class Message:
         chat_id: Telegram chat_id
         role: Роль отправителя ('user' или 'assistant')
         content: Текст сообщения
+        content_length: Длина контента в символах (вычисляется автоматически)
         id: ID сообщения в БД (опционально)
         created_at: Время создания (опционально)
+        is_deleted: Флаг мягкого удаления (False - активное, True - удалённое)
     """
 
     user_id: int
     chat_id: int
     role: Literal["user", "assistant"]
     content: str
+    content_length: int
     id: int | None = None
     created_at: datetime | None = None
+    is_deleted: bool = False

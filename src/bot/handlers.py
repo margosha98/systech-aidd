@@ -137,7 +137,11 @@ class BotHandlers:
         try:
             # 1. Сохраняем сообщение пользователя
             user_message = Message(
-                user_id=user_id, chat_id=chat_id, role="user", content=message.text
+                user_id=user_id,
+                chat_id=chat_id,
+                role="user",
+                content=message.text,
+                content_length=len(message.text),
             )
             await self.database.save_message(user_message)
 
@@ -157,7 +161,11 @@ class BotHandlers:
 
             # 4. Сохраняем ответ ассистента
             assistant_message = Message(
-                user_id=user_id, chat_id=chat_id, role="assistant", content=response
+                user_id=user_id,
+                chat_id=chat_id,
+                role="assistant",
+                content=response,
+                content_length=len(response),
             )
             await self.database.save_message(assistant_message)
 

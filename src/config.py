@@ -13,7 +13,10 @@ class Config(BaseSettings):
 
     # Openrouter
     openrouter_api_key: str
-    openrouter_model: str = "openai/gpt-oss-20b:free,deepseek/deepseek-chat-v3.1:free,qwen/qwen3-coder:free,meta-llama/llama-3.3-8b-instruct:free"
+    openrouter_model: str = (
+        "openai/gpt-oss-20b:free,deepseek/deepseek-chat-v3.1:free,"
+        "qwen/qwen3-coder:free,meta-llama/llama-3.3-8b-instruct:free"
+    )
 
     # LLM settings
     llm_temperature: float = 0.8  # Баланс между точностью объяснений и эмоциональностью
@@ -92,8 +95,12 @@ class Config(BaseSettings):
         "Будь терпеливым, добрым и искренне заинтересованным в помощи ребенку! 💙"
     )
 
-    # Database
-    database_path: str = "./data/messages.db"
+    # PostgreSQL Database
+    postgres_host: str = "localhost"
+    postgres_port: int = 5432
+    postgres_db: str = "systech_aidd"
+    postgres_user: str = "postgres"
+    postgres_password: str
 
     # History
     max_history_messages: int = 10
