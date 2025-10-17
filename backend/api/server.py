@@ -2,10 +2,12 @@
 
 from typing import Annotated
 
+import asyncpg  # type: ignore[import-untyped]
 from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 
-from backend.api.collectors import MockStatCollector
+from backend.api.collectors import RealStatCollector
+from backend.api.config import APIConfig
 from backend.api.models import PeriodEnum, StatsResponse
 
 # Создаем FastAPI приложение
@@ -24,8 +26,37 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Создаем единственный экземпляр MockStatCollector
-stat_collector = MockStatCollector(seed=42)
+# Загружаем конфигурацию
+config = APIConfig()
+
+
+@app.on_event("startup")
+async def startup() -> None:
+    """Инициализация при старте приложения.
+    
+    Создает connection pool для PostgreSQL.
+    """
+    app.state.db_pool = await asyncpg.create_pool(
+        host=config.postgres_host,
+        port=config.postgres_port,
+        database=config.postgres_db,
+        user=config.postgres_user,
+        password=config.postgres_password,
+        min_size=2,
+        max_size=10,
+    )
+    print(f"[OK] Database connection pool created: {config.postgres_host}:{config.postgres_port}/{config.postgres_db}")
+
+
+@app.on_event("shutdown")
+async def shutdown() -> None:
+    """Очистка при остановке приложения.
+    
+    Закрывает connection pool.
+    """
+    if hasattr(app.state, "db_pool") and app.state.db_pool:
+        await app.state.db_pool.close()
+        print("[OK] Database connection pool closed")
 
 
 @app.get(
@@ -48,6 +79,7 @@ async def get_stats(
     Returns:
         StatsResponse с метриками и timeline
     """
+    stat_collector = RealStatCollector(app.state.db_pool)
     return await stat_collector.get_stats(period)
 
 
