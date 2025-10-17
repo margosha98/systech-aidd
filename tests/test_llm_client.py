@@ -30,7 +30,7 @@ def llm_client(mock_config):
 @pytest.mark.asyncio
 async def test_get_response_simple(llm_client):
     """Тест простого запроса к LLM."""
-    messages = [Message(user_id=1, chat_id=1, role="user", content="Hello")]
+    messages = [Message(user_id=1, chat_id=1, role="user", content="Hello", content_length=5, username="test_user")]
     system_prompt = "You are helpful assistant"
 
     # Мокаем ответ от API
@@ -53,9 +53,9 @@ async def test_get_response_simple(llm_client):
 async def test_get_response_with_history(llm_client):
     """Тест запроса с историей диалога."""
     messages = [
-        Message(user_id=1, chat_id=1, role="user", content="What is 2+2?"),
-        Message(user_id=1, chat_id=1, role="assistant", content="4"),
-        Message(user_id=1, chat_id=1, role="user", content="And 3+3?"),
+        Message(user_id=1, chat_id=1, role="user", content="What is 2+2?", content_length=13, username="test_user"),
+        Message(user_id=1, chat_id=1, role="assistant", content="4", content_length=1, username="test_user"),
+        Message(user_id=1, chat_id=1, role="user", content="And 3+3?", content_length=8, username="test_user"),
     ]
     system_prompt = "You are a math teacher"
 
@@ -89,7 +89,7 @@ async def test_get_response_with_history(llm_client):
 @pytest.mark.asyncio
 async def test_get_response_api_error(llm_client):
     """Тест обработки ошибки API."""
-    messages = [Message(user_id=1, chat_id=1, role="user", content="Test")]
+    messages = [Message(user_id=1, chat_id=1, role="user", content="Test", content_length=4, username="test_user")]
     system_prompt = "Test prompt"
 
     with (
@@ -107,7 +107,7 @@ async def test_get_response_api_error(llm_client):
 @pytest.mark.asyncio
 async def test_get_response_uses_config_params(llm_client):
     """Тест что используются параметры из конфига."""
-    messages = [Message(user_id=1, chat_id=1, role="user", content="Test")]
+    messages = [Message(user_id=1, chat_id=1, role="user", content="Test", content_length=4, username="test_user")]
     system_prompt = "Test"
 
     mock_response = MagicMock()

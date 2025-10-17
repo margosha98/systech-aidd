@@ -49,6 +49,7 @@ def create_mock_message(text: str, user_id: int = 123, chat_id: int = 123):
     msg.text = text
     msg.from_user = MagicMock(spec=User)
     msg.from_user.id = user_id
+    msg.from_user.username = "test_user"
     msg.chat = MagicMock(spec=Chat)
     msg.chat.id = chat_id
     msg.answer = AsyncMock()
@@ -114,6 +115,7 @@ async def test_handle_message_calls_llm(handlers, mock_llm_client, mock_database
             role="user",
             content="What is AI?",
             content_length=11,
+            username="test_user",
         )
     ]
     mock_database.get_history.return_value = history

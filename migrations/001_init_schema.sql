@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS messages (
     role VARCHAR(20) NOT NULL,
     content TEXT NOT NULL,
     content_length INTEGER NOT NULL,
+    username VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
@@ -15,4 +16,8 @@ CREATE TABLE IF NOT EXISTS messages (
 -- Index for efficient queries: filter by chat/user, exclude deleted, sort by date
 CREATE INDEX IF NOT EXISTS idx_chat_user_active 
 ON messages (chat_id, user_id, is_deleted, created_at DESC);
+
+-- Index for searching by username (useful for analytics)
+CREATE INDEX IF NOT EXISTS idx_messages_username 
+ON messages (username);
 

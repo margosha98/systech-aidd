@@ -15,6 +15,7 @@ class Message:
         role: Роль отправителя ('user' или 'assistant')
         content: Текст сообщения
         content_length: Длина контента в символах (вычисляется автоматически)
+        username: Telegram username пользователя (или user_id как строка, если username отсутствует)
         id: ID сообщения в БД (опционально)
         created_at: Время создания (опционально)
         is_deleted: Флаг мягкого удаления (False - активное, True - удалённое)
@@ -25,6 +26,7 @@ class Message:
     role: Literal["user", "assistant"]
     content: str
     content_length: int
+    username: str
     id: int | None = None
     created_at: datetime | None = None
     is_deleted: bool = False

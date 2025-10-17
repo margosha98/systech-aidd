@@ -129,14 +129,15 @@ class Database:
             async with self._pool.acquire() as conn:
                 await conn.execute(
                     """
-                    INSERT INTO messages (user_id, chat_id, role, content, content_length)
-                    VALUES ($1, $2, $3, $4, $5)
+                    INSERT INTO messages (user_id, chat_id, role, content, content_length, username)
+                    VALUES ($1, $2, $3, $4, $5, $6)
                     """,
                     message.user_id,
                     message.chat_id,
                     message.role,
                     message.content,
                     content_length,
+                    message.username,
                 )
 
             logger.info(
@@ -167,7 +168,7 @@ class Database:
             async with self._pool.acquire() as conn:
                 rows = await conn.fetch(
                     """
-                    SELECT id, user_id, chat_id, role, content, content_length,
+                    SELECT id, user_id, chat_id, role, content, content_length, username,
                            created_at, is_deleted
                     FROM messages
                     WHERE chat_id = $1 AND user_id = $2 AND is_deleted = FALSE
@@ -188,6 +189,7 @@ class Database:
                         role=row["role"],
                         content=row["content"],
                         content_length=row["content_length"],
+                        username=row["username"],
                         created_at=row["created_at"],
                         is_deleted=row["is_deleted"],
                     )

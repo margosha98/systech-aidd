@@ -53,6 +53,7 @@ async def test_save_message_user(db):
         role="user",
         content="Hello",
         content_length=5,  # Будет перезаписан в save_message
+        username="test_user",
     )
     await db.save_message(msg)
 
@@ -74,6 +75,7 @@ async def test_save_message_assistant(db):
         role="assistant",
         content="Hi there",
         content_length=8,
+        username="test_user",
     )
     await db.save_message(msg)
 
@@ -94,6 +96,7 @@ async def test_content_length_calculated(db):
         role="user",
         content=long_content,
         content_length=0,  # Неважно, будет перезаписан
+        username="test_user",
     )
     await db.save_message(msg)
 
@@ -120,6 +123,7 @@ async def test_get_history_limit(db):
             role="user" if i % 2 == 0 else "assistant",
             content=f"Message {i}",
             content_length=len(f"Message {i}"),
+            username="test_user",
         )
         await db.save_message(msg)
 
@@ -136,13 +140,13 @@ async def test_get_history_limit(db):
 async def test_get_history_order(db):
     """Тест правильного порядка сообщений (от старых к новым)."""
     msg1 = Message(
-        user_id=200, chat_id=200, role="user", content="First", content_length=5
+        user_id=200, chat_id=200, role="user", content="First", content_length=5, username="test_user"
     )
     msg2 = Message(
-        user_id=200, chat_id=200, role="assistant", content="Second", content_length=6
+        user_id=200, chat_id=200, role="assistant", content="Second", content_length=6, username="test_user"
     )
     msg3 = Message(
-        user_id=200, chat_id=200, role="user", content="Third", content_length=5
+        user_id=200, chat_id=200, role="user", content="Third", content_length=5, username="test_user"
     )
 
     await db.save_message(msg1)
@@ -161,10 +165,10 @@ async def test_clear_history_soft_delete(db):
     """Тест что clear_history делает soft delete (is_deleted = TRUE)."""
     # Сохраняем сообщения
     msg1 = Message(
-        user_id=300, chat_id=300, role="user", content="Test", content_length=4
+        user_id=300, chat_id=300, role="user", content="Test", content_length=4, username="test_user"
     )
     msg2 = Message(
-        user_id=300, chat_id=300, role="assistant", content="Response", content_length=8
+        user_id=300, chat_id=300, role="assistant", content="Response", content_length=8, username="test_user"
     )
     await db.save_message(msg1)
     await db.save_message(msg2)
@@ -199,6 +203,7 @@ async def test_get_history_excludes_deleted(db):
             role="user",
             content=f"Message {i}",
             content_length=len(f"Message {i}"),
+            username="test_user",
         )
         await db.save_message(msg)
 
@@ -228,10 +233,10 @@ async def test_clear_history_isolation(db):
     """Тест что очистка не затрагивает других пользователей."""
     # Сохраняем для разных пользователей
     msg1 = Message(
-        user_id=500, chat_id=500, role="user", content="User 1", content_length=6
+        user_id=500, chat_id=500, role="user", content="User 1", content_length=6, username="test_user1"
     )
     msg2 = Message(
-        user_id=600, chat_id=600, role="user", content="User 2", content_length=6
+        user_id=600, chat_id=600, role="user", content="User 2", content_length=6, username="test_user2"
     )
     await db.save_message(msg1)
     await db.save_message(msg2)
@@ -262,7 +267,7 @@ async def test_context_manager():
 
         # Проверяем что можем работать с БД
         msg = Message(
-            user_id=700, chat_id=700, role="user", content="Test", content_length=4
+            user_id=700, chat_id=700, role="user", content="Test", content_length=4, username="test_user"
         )
         await db.save_message(msg)
 
@@ -282,7 +287,7 @@ async def test_connection_not_opened_raises_error():
     )
 
     msg = Message(
-        user_id=800, chat_id=800, role="user", content="Test", content_length=4
+        user_id=800, chat_id=800, role="user", content="Test", content_length=4, username="test_user"
     )
 
     with pytest.raises(RuntimeError, match="Database not connected"):
