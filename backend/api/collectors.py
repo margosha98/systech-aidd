@@ -109,26 +109,32 @@ class MockStatCollector:
             points_count: Количество точек данных
 
         Returns:
-            Список TimelinePoint с датами и значениями
+            Список TimelinePoint с датами и значениями для метрик
         """
         timeline = []
-        base_value = random.randint(800, 1500)
+        base_messages = random.randint(1000, 2000)
+        base_users = random.randint(100, 300)
         current_date = datetime.now(UTC) - timedelta(days=points_count - 1)
 
         for _ in range(points_count):
-            # Генерируем значение с небольшой волатильностью
-            variation = random.randint(-200, 300)
-            value = max(100, base_value + variation)
+            # Генерируем значения с небольшой волатильностью
+            messages_variation = random.randint(-300, 500)
+            users_variation = random.randint(-50, 80)
+            
+            total_messages = max(200, base_messages + messages_variation)
+            active_users = max(50, base_users + users_variation)
 
             timeline.append(
                 TimelinePoint(
                     date=current_date.strftime("%Y-%m-%d"),
-                    value=value,
+                    total_messages=total_messages,
+                    active_users=active_users,
                 )
             )
 
-            # Плавное изменение base_value для следующей точки
-            base_value = int(base_value * random.uniform(0.95, 1.15))
+            # Плавное изменение base значений для следующей точки
+            base_messages = int(base_messages * random.uniform(0.95, 1.15))
+            base_users = int(base_users * random.uniform(0.93, 1.12))
             current_date += timedelta(days=1)
 
         return timeline

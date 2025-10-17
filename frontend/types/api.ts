@@ -15,7 +15,8 @@ export interface MetricCard {
 
 export interface TimelinePoint {
   date: string; // Формат: YYYY-MM-DD
-  value: number;
+  total_messages: number;
+  active_users: number;
 }
 
 export interface MetricsData {

@@ -62,7 +62,8 @@ class TestMockStatCollector:
         stats2 = await collector2.get_stats(PeriodEnum.SEVEN_DAYS)
 
         assert stats1.metrics.total_messages.value == stats2.metrics.total_messages.value
-        assert stats1.timeline[0].value == stats2.timeline[0].value
+        assert stats1.timeline[0].total_messages == stats2.timeline[0].total_messages
+        assert stats1.timeline[0].active_users == stats2.timeline[0].active_users
 
     @pytest.mark.asyncio
     async def test_timeline_dates_format(self) -> None:
@@ -83,7 +84,8 @@ class TestMockStatCollector:
         stats = await collector.get_stats(PeriodEnum.SEVEN_DAYS)
 
         for point in stats.timeline:
-            assert point.value >= 0
+            assert point.total_messages >= 0
+            assert point.active_users >= 0
 
 
 class TestAPIEndpoints:
@@ -168,7 +170,8 @@ class TestAPIEndpoints:
         assert len(data["timeline"]) > 0
         first_point = data["timeline"][0]
         assert "date" in first_point
-        assert "value" in first_point
+        assert "total_messages" in first_point
+        assert "active_users" in first_point
 
     def test_cors_middleware_configured(self, client: TestClient) -> None:
         """Тест что CORS middleware настроен в приложении."""

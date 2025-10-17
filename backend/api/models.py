@@ -42,11 +42,13 @@ class TimelinePoint(BaseModel):
 
     Attributes:
         date: Дата в формате YYYY-MM-DD
-        value: Значение метрики на эту дату
+        total_messages: Количество сообщений на эту дату
+        active_users: Количество активных пользователей на эту дату
     """
 
     date: str = Field(..., description="Дата в формате YYYY-MM-DD")
-    value: int = Field(..., description="Значение метрики", ge=0)
+    total_messages: int = Field(..., description="Количество сообщений", ge=0)
+    active_users: int = Field(..., description="Количество активных пользователей", ge=0)
 
 
 class MetricsData(BaseModel):
