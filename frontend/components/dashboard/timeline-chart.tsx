@@ -24,12 +24,12 @@ export function TimelineChart({ data, period }: TimelineChartProps) {
       <AreaChart data={chartData}>
         <defs>
           <linearGradient id="colorMessages" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.5} />
+            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
           </linearGradient>
           <linearGradient id="colorUsers" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(142.1 76.2% 36.3%)" stopOpacity={0.3} />
-            <stop offset="95%" stopColor="hsl(142.1 76.2% 36.3%)" stopOpacity={0} />
+            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.5} />
+            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
@@ -90,16 +90,16 @@ export function TimelineChart({ data, period }: TimelineChartProps) {
           type="monotone"
           dataKey="total_messages"
           name="total_messages"
-          stroke="hsl(var(--primary))"
-          strokeWidth={2}
+          stroke="#3b82f6"
+          strokeWidth={3}
           fill="url(#colorMessages)"
         />
         <Area
           type="monotone"
           dataKey="active_users"
           name="active_users"
-          stroke="hsl(142.1 76.2% 36.3%)"
-          strokeWidth={2}
+          stroke="#22c55e"
+          strokeWidth={3}
           fill="url(#colorUsers)"
         />
       </AreaChart>

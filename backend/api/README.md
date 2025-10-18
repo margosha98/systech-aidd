@@ -64,10 +64,13 @@ API будет доступен по адресу: `http://localhost:8000`
 ```
 backend/api/
 ├── __init__.py          # Инициализация модуля
-├── models.py            # Pydantic модели данных
+├── models.py            # Pydantic модели данных (Stats + Chat)
 ├── protocols.py         # Protocol интерфейсы
 ├── collectors.py        # Реализации сборщиков статистики
-├── server.py            # FastAPI приложение
+├── prompts.py           # LLM промпты для чата и text-to-SQL
+├── sql_generator.py     # Генератор SQL запросов через LLM
+├── chat_service.py      # Сервис обработки чат сообщений
+├── server.py            # FastAPI приложение (Stats + Chat endpoints)
 ├── __main__.py          # Entry point для запуска
 ├── API_EXAMPLES.md      # Примеры запросов
 └── README.md            # Эта документация
@@ -76,12 +79,18 @@ backend/api/
 ### Ключевые компоненты
 
 **Models (`models.py`):**
-- `PeriodEnum` - enum для периодов (7d, 30d, 3m)
-- `TrendEnum` - enum для трендов (up, down, steady)
-- `MetricCard` - модель карточки метрики
-- `TimelinePoint` - точка данных для графика
-- `MetricsData` - набор всех метрик
-- `StatsResponse` - полный ответ API
+- Статистика:
+  - `PeriodEnum` - enum для периодов (7d, 30d, 3m)
+  - `TrendEnum` - enum для трендов (up, down, steady)
+  - `MetricCard` - модель карточки метрики
+  - `TimelinePoint` - точка данных для графика
+  - `MetricsData` - набор всех метрик
+  - `StatsResponse` - полный ответ API
+- Чат:
+  - `ChatMode` - enum для режимов чата (normal, admin)
+  - `ChatRequest` - запрос на отправку сообщения
+  - `ChatMessage` - модель сообщения в истории
+  - `ChatResponse` - ответ от чата
 
 **Protocols (`protocols.py`):**
 - `StatCollectorProtocol` - интерфейс для сборщиков статистики
@@ -90,14 +99,22 @@ backend/api/
 - `MockStatCollector` - mock реализация с генерацией случайных данных (для разработки frontend)
 - `RealStatCollector` - реальная реализация с получением данных из PostgreSQL
 
+**Chat Components:**
+- `prompts.py` - LLM промпты для обычного режима, text-to-SQL и интерпретации результатов
+- `sql_generator.py` - генерация SQL через LLM, выполнение и интерпретация результатов
+- `chat_service.py` - обработка сообщений в обоих режимах (normal/admin)
+
 **Server (`server.py`):**
-- FastAPI приложение с единым эндпоинтом `/api/stats`
+- FastAPI приложение с эндпоинтами `/api/stats` и `/api/chat/*`
 - CORS middleware для frontend разработки
+- Интеграция с LLM клиентом из `src/llm/client.py`
 - Автоматическая генерация OpenAPI документации
 
 ## API Endpoints
 
-### GET /api/stats
+### Статистика
+
+#### GET /api/stats
 
 Получить статистику дашборда за указанный период.
 
@@ -149,7 +166,66 @@ curl "http://localhost:8000/api/stats?period=7d"
 }
 ```
 
-### GET /health
+### Чат
+
+#### POST /api/chat/message
+
+Отправить сообщение в AI-чат и получить ответ.
+
+**Тело запроса:** `ChatRequest`
+```json
+{
+  "message": "Сколько всего сообщений было отправлено?",
+  "mode": "admin",
+  "session_id": "session_1234567890_abc"
+}
+```
+
+**Параметры:**
+- `message` (string, required) - Текст сообщения от пользователя
+- `mode` (string, optional) - Режим чата: `normal` (обычный) или `admin` (с доступом к статистике). По умолчанию: `normal`
+- `session_id` (string, required) - Уникальный идентификатор сессии для сохранения истории
+
+**Ответ:** `ChatResponse`
+```json
+{
+  "message": "За последние 7 дней было отправлено 45,678 сообщений.",
+  "sql_query": "SELECT COUNT(*) FROM messages WHERE created_at >= NOW() - INTERVAL '7 days'",
+  "mode": "admin"
+}
+```
+
+**Режимы работы:**
+- **normal** - Обычный чат с LLM-ассистентом
+- **admin** - Режим администратора с text-to-SQL для вопросов по статистике
+
+#### GET /api/chat/history/{session_id}
+
+Получить историю сообщений чата для сессии.
+
+**Параметры:**
+- `session_id` (path, required) - ID сессии чата
+- `limit` (query, optional) - Максимальное количество сообщений (1-100). По умолчанию: 50
+
+**Ответ:** `ChatMessage[]`
+```json
+[
+  {
+    "role": "user",
+    "content": "Привет!",
+    "timestamp": "2025-10-17T10:30:00"
+  },
+  {
+    "role": "assistant",
+    "content": "Привет! Как я могу помочь?",
+    "timestamp": "2025-10-17T10:30:01"
+  }
+]
+```
+
+### Служебные
+
+#### GET /health
 
 Health check эндпоинт для проверки работоспособности API.
 

@@ -1,6 +1,8 @@
 """Pydantic модели для API статистики."""
 
+from datetime import datetime
 from enum import Enum
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -81,3 +83,57 @@ class StatsResponse(BaseModel):
     timeline: list[TimelinePoint] = Field(
         ..., description="Данные для графика временной шкалы", min_length=1
     )
+
+
+class ChatMode(str, Enum):
+    """Режимы работы чата.
+
+    Attributes:
+        NORMAL: Обычный режим общения с LLM
+        ADMIN: Режим администратора для вопросов по статистике
+    """
+
+    NORMAL = "normal"
+    ADMIN = "admin"
+
+
+class ChatRequest(BaseModel):
+    """Запрос для отправки сообщения в чат.
+
+    Attributes:
+        message: Текст сообщения пользователя
+        mode: Режим работы чата (normal/admin)
+        session_id: Идентификатор сессии для отслеживания истории
+    """
+
+    message: str = Field(..., description="Текст сообщения", min_length=1)
+    mode: ChatMode = Field(ChatMode.NORMAL, description="Режим работы чата")
+    session_id: str = Field(..., description="Идентификатор сессии")
+
+
+class ChatMessage(BaseModel):
+    """Сообщение в чате.
+
+    Attributes:
+        role: Роль отправителя (user/assistant)
+        content: Содержимое сообщения
+        timestamp: Временная метка создания сообщения
+    """
+
+    role: Literal["user", "assistant"] = Field(..., description="Роль отправителя")
+    content: str = Field(..., description="Содержимое сообщения")
+    timestamp: datetime = Field(..., description="Временная метка")
+
+
+class ChatResponse(BaseModel):
+    """Ответ от чата.
+
+    Attributes:
+        message: Текст ответа от ассистента
+        sql_query: SQL запрос для admin режима (для отладки)
+        mode: Режим, в котором был обработан запрос
+    """
+
+    message: str = Field(..., description="Текст ответа")
+    sql_query: str | None = Field(None, description="SQL запрос (только для admin режима)")
+    mode: ChatMode = Field(..., description="Режим обработки")

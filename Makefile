@@ -32,7 +32,7 @@ quality: format lint typecheck test
 	@echo "✅ All quality checks passed!"
 
 stop:
-    powershell -Command "Get-Process python* -ErrorAction SilentlyContinue | Stop-Process -Force"
+	powershell -Command "Get-Process python* -ErrorAction SilentlyContinue | Stop-Process -Force"
 
 # Frontend commands
 install-frontend:

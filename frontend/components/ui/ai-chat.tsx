@@ -102,50 +102,14 @@ export default function AIChat({
   };
 
   return (
-    <div className={cn("relative w-[360px] h-full max-h-full rounded-2xl", className)}>
-      {/* Animated Outer Border */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl border-2 border-white/20 pointer-events-none"
-        animate={{ rotate: [0, 360] }}
-        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-      />
-
+    <div className={cn("relative w-[360px] h-[500px] rounded-2xl", className)}>
       {/* Inner Card */}
-      <div className="relative flex flex-col w-full h-full rounded-xl border border-white/10 bg-black/90 backdrop-blur-xl shadow-2xl">
-        {/* Inner Animated Background */}
-        <motion.div
-          className="absolute inset-0 bg-gradient-to-br from-gray-800 via-black to-gray-900 rounded-xl overflow-hidden"
-          animate={{ backgroundPosition: ["0% 0%", "100% 100%", "0% 0%"] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          style={{ backgroundSize: "200% 200%" }}
-        />
-
-        {/* Floating Particles Container */}
-        <div className="absolute inset-0 rounded-xl overflow-hidden pointer-events-none">
-          {Array.from({ length: 20 }).map((_, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-1 h-1 rounded-full bg-white/10"
-              animate={{
-                y: ["0%", "-140%"],
-                x: [Math.random() * 200 - 100, Math.random() * 200 - 100],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 5 + Math.random() * 3,
-                repeat: Infinity,
-                delay: i * 0.5,
-                ease: "easeInOut",
-              }}
-              style={{ left: `${Math.random() * 100}%`, bottom: "-10%" }}
-            />
-          ))}
-        </div>
+      <div className="relative flex flex-col w-full h-full rounded-xl border border-blue-400/20 bg-gradient-to-br from-slate-700 to-slate-800 shadow-xl" style={{ boxShadow: '0 0 20px rgba(59, 130, 246, 0.1)' }}>
 
         {/* Header */}
         <div className="px-4 py-3 border-b border-white/10 relative z-10 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-white whitespace-nowrap">🤖 AI Ассистент</h2>
+            <h2 className="text-lg font-semibold text-white whitespace-nowrap">AI Ассистент</h2>
             {/* Mode Badge */}
             <span 
               className={cn(
@@ -161,18 +125,18 @@ export default function AIChat({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => onModeChange(mode === 'normal' ? 'admin' : 'normal')}
-              className="p-2 rounded-lg bg-white/40 hover:bg-white/60 border-2 border-white/60 hover:border-white transition-all shadow-lg hover:shadow-xl shrink-0"
+              className="p-1.5 rounded-md bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/40 transition-colors shrink-0"
               title="Переключить режим"
             >
-              <Settings className="w-5 h-5 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+              <Settings className="w-4 h-4 text-blue-300" />
             </button>
             {onClose && (
               <button
                 onClick={onClose}
-                className="p-2 rounded-lg bg-white/40 hover:bg-white/60 border-2 border-white/60 hover:border-white transition-all shadow-lg hover:shadow-xl shrink-0"
+                className="p-1.5 rounded-md bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/40 transition-colors shrink-0"
                 title="Закрыть"
               >
-                <X className="w-5 h-5 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" />
+                <X className="w-4 h-4 text-blue-300" />
               </button>
             )}
           </div>
@@ -247,7 +211,7 @@ export default function AIChat({
         {/* Input */}
         <div className="flex items-center gap-2 p-3 border-t border-white/10 relative z-10 shrink-0">
           <input
-            className="flex-1 px-3 py-2 text-sm bg-black/50 rounded-lg border border-white/10 text-white placeholder:text-white/50 focus:outline-none focus:ring-1 focus:ring-white/50"
+            className="flex-1 px-3 py-2 text-sm bg-slate-800/80 rounded-lg border border-blue-400/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-1 focus:ring-blue-400/50"
             placeholder="Напишите сообщение..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -257,9 +221,9 @@ export default function AIChat({
           <button
             onClick={handleSend}
             disabled={isTyping || !input.trim()}
-            className="p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="p-2 rounded-lg bg-blue-500/30 hover:bg-blue-500/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Send className="w-4 h-4 text-white" />
+            <Send className="w-4 h-4 text-blue-300" />
           </button>
         </div>
       </div>

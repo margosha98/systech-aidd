@@ -22,7 +22,7 @@ export function ChatFloatButton() {
       {/* Floating Button */}
       <motion.button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 p-4 shadow-lg hover:shadow-xl transition-shadow"
+        className="fixed bottom-6 right-6 z-50 rounded-full bg-gradient-to-r from-blue-400 to-blue-600 p-4 shadow-lg hover:shadow-xl transition-shadow"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         initial={{ scale: 0 }}
@@ -40,7 +40,7 @@ export function ChatFloatButton() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="fixed top-48 bottom-6 right-6 z-40"
+            className="fixed bottom-[105px] right-6 z-40"
           >
             <AIChat
               mode={mode}

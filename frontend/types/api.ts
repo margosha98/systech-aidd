@@ -31,3 +31,24 @@ export interface StatsResponse {
   metrics: MetricsData;
   timeline: TimelinePoint[];
 }
+
+// Типы для Chat API
+export type ChatMode = 'normal' | 'admin';
+
+export interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
+export interface ChatRequest {
+  message: string;
+  mode: ChatMode;
+  session_id: string;
+}
+
+export interface ChatResponse {
+  message: string;
+  sql_query?: string;
+  mode: ChatMode;
+}
