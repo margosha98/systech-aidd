@@ -1,0 +1,26 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Установка UV package manager
+RUN pip install --no-cache-dir uv
+
+# Копирование файлов зависимостей
+COPY pyproject.toml uv.lock ./
+
+# Установка зависимостей
+RUN uv sync --frozen
+
+# Копирование исходного кода
+COPY backend/ ./backend/
+COPY src/ ./src/
+
+# Копирование миграций
+COPY migrations/ ./migrations/
+
+# Открытие порта для API
+EXPOSE 8000
+
+# Запуск API сервера
+CMD ["uv", "run", "python", "-m", "backend.api"]
+
