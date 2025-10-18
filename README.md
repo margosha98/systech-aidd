@@ -1,6 +1,6 @@
 # Systech AIDD Bot - Знайкин
 
-[![Build and Publish](https://github.com/OWNER/systech-aidd/workflows/Build%20and%20Publish/badge.svg)](https://github.com/OWNER/systech-aidd/actions)
+[![Build and Publish](https://github.com/margosha98/systech-aidd/workflows/Build%20and%20Publish/badge.svg)](https://github.com/margosha98/systech-aidd/actions)
 
 AI-powered Telegram бот-помощник для детей 7-10 лет с контекстным диалогом.
 
@@ -24,17 +24,17 @@ AI-powered Telegram бот-помощник для детей 7-10 лет с к�
 
 ### Доступные образы
 
-- **Bot:** `ghcr.io/OWNER/systech-aidd-bot:latest`
-- **API:** `ghcr.io/OWNER/systech-aidd-api:latest`
-- **Frontend:** `ghcr.io/OWNER/systech-aidd-frontend:latest`
+- **Bot:** `ghcr.io/margosha98/systech-aidd-bot:latest`
+- **API:** `ghcr.io/margosha98/systech-aidd-api:latest`
+- **Frontend:** `ghcr.io/margosha98/systech-aidd-frontend:latest`
 
 ### Использование готовых образов
 
 ```bash
 # Скачать образы
-docker pull ghcr.io/OWNER/systech-aidd-bot:latest
-docker pull ghcr.io/OWNER/systech-aidd-api:latest
-docker pull ghcr.io/OWNER/systech-aidd-frontend:latest
+docker pull ghcr.io/margosha98/systech-aidd-bot:latest
+docker pull ghcr.io/margosha98/systech-aidd-api:latest
+docker pull ghcr.io/margosha98/systech-aidd-frontend:latest
 
 # Запустить из готовых образов
 docker-compose -f docker-compose.registry.yml up -d
