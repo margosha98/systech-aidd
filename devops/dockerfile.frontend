@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Установка pnpm глобально
+RUN npm install -g pnpm
+
+# Копирование файлов зависимостей
+COPY frontend/package.json frontend/pnpm-lock.yaml ./
+
+# Установка зависимостей через pnpm с frozen lockfile
+RUN pnpm install --frozen-lockfile
+
+# Копирование остального исходного кода
+COPY frontend/ ./
+
+# Открытие порта для frontend
+EXPOSE 3000
+
+# Запуск в dev режиме через pnpm
+CMD ["pnpm", "dev"]
+

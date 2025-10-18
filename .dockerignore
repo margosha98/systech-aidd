@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+**/node_modules/
+**/.next/
+**/pnpm-lock.yaml.bak
+
+# Tests
+tests/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+docs/
+*.md
+
+# Data
+data/
+
+# Dev files
+.vscode/
+.cursor/
+
