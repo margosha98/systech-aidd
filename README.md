@@ -1,5 +1,7 @@
 # Systech AIDD Bot - Знайкин
 
+[![Build and Publish](https://github.com/OWNER/systech-aidd/workflows/Build%20and%20Publish/badge.svg)](https://github.com/OWNER/systech-aidd/actions)
+
 AI-powered Telegram бот-помощник для детей 7-10 лет с контекстным диалогом.
 
 ## 🚀 Возможности
@@ -15,6 +17,33 @@ AI-powered Telegram бот-помощник для детей 7-10 лет с к�
 - ⚡ Асинхронная архитектура (aiogram 3.x)
 - 🏗️ Чистая архитектура с Dependency Injection
 - ✅ Автоматический контроль качества кода
+
+## 🐳 Docker образы
+
+Проект автоматически собирается и публикуется в GitHub Container Registry при каждом push в `main`.
+
+### Доступные образы
+
+- **Bot:** `ghcr.io/OWNER/systech-aidd-bot:latest`
+- **API:** `ghcr.io/OWNER/systech-aidd-api:latest`
+- **Frontend:** `ghcr.io/OWNER/systech-aidd-frontend:latest`
+
+### Использование готовых образов
+
+```bash
+# Скачать образы
+docker pull ghcr.io/OWNER/systech-aidd-bot:latest
+docker pull ghcr.io/OWNER/systech-aidd-api:latest
+docker pull ghcr.io/OWNER/systech-aidd-frontend:latest
+
+# Запустить из готовых образов
+docker-compose -f docker-compose.registry.yml up -d
+```
+
+**Преимущества:**
+- ✅ Не нужно собирать образы локально
+- ✅ Быстрый старт - скачивание вместо сборки
+- ✅ Гарантированно работающая версия из main
 
 ## 📦 Установка
 
